@@ -102,6 +102,8 @@ module.exports = {
         id_jadwal: nanoid(5),
         id_lokasi_pmi: idLokPmiValues[0],
         jadwal_hari: "SENIN",
+        // TODO sender update tanggal
+        tanggal_donor: new Date("2001-04-25"),
         jadwal_jam_mulai: "08:00:00",
         jadwal_jam_selesai: "16:30:00",
       },
@@ -110,6 +112,7 @@ module.exports = {
         id_jadwal: nanoid(5),
         id_lokasi_pmi: idLokPmiValues[0],
         jadwal_hari: "SELASA",
+        tanggal_donor: new Date("2001-03-20"),
         jadwal_jam_mulai: "09:00:00",
         jadwal_jam_selesai: "14:55:00",
       },
@@ -118,6 +121,7 @@ module.exports = {
         id_jadwal: nanoid(5),
         id_lokasi_pmi: idLokPmiValues[1],
         jadwal_hari: "SELASA",
+        tanggal_donor: new Date("2001-02-22"),
         jadwal_jam_mulai: "09:00:00",
         jadwal_jam_selesai: "14:55:00",
       },
@@ -127,6 +131,7 @@ module.exports = {
         id_lokasi_pmi: idLokPmiValues[2],
         jadwal_hari: "RABU",
         jadwal_jam_mulai: "09:00:00",
+        tanggal_donor: new Date("2001-06-25"),
         jadwal_jam_selesai: "14:55:00",
       },
     ]);

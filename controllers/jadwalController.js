@@ -41,6 +41,9 @@ exports.getAllJadwalPerDay = async (req, res) => {
       id_lok_pmi: jadwal.LokasiPmi.id_lokasi_pmi,
       nama_lok_pmi: jadwal.LokasiPmi.nama,
       alamat_pmi: jadwal.LokasiPmi.alamat,
+      tanggal_donor: new Date(jadwal.tanggal_donor).toISOString().split('T')[0], // Tambahkan ini jika tanggal_donor ada dalam model Jadwal
+      jadwal_hari: jadwal.jadwal_hari, // Tambahkan ini jika jadwal_hari ada dalam model Jadwal
+      
       jadwal_jam_mulai: jadwal.jadwal_jam_mulai,
       jadwal_jam_selesai: jadwal.jadwal_jam_selesai,
       latitude: jadwal.LokasiPmi.latitude,

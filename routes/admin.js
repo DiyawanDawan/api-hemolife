@@ -8,6 +8,7 @@ const {
 	getAllBloodDonors,
 	adminProfile,
 	updateAdminProfile,
+	postJadwalDonorDarahPMI
 } = require("../controllers/adminController");
 const { authenticateToken } = require("../middleware/middleware");
 
@@ -17,5 +18,6 @@ router.put("/bankDarah/update/:id", updateBloodBankByPmiId);
 router.get("/pendonorDarah", getAllBloodDonors);
 router.get("/adminProfile", authenticateToken, adminProfile);
 router.put("/adminProfile/update", authenticateToken, updateAdminProfile);
+router.post("/addPostJadwalPMI", authenticateToken, postJadwalDonorDarahPMI)
 
 module.exports = router;
