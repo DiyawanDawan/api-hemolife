@@ -23,12 +23,12 @@ Contoh
 
 3. Perintah Untuk Migrasi database
 
-    npx sequelize db:migrate
+        npx sequelize db:migrate
 
 4. Untuk melakukan seender atau insert query di databse
 
-    npx sequelize db:seed --seed 20231212101616-engine-insert-data.js
+       npx sequelize db:seed --seed 20231212101616-engine-insert-data.js
 
 4. Cara melakukan seed pada tabel keseluruhanya perintah ini di jalankan ketika perintah sebelumnya belum di jalankan
 
-    npx sequelize db:seed:all
+        npx sequelize db:seed:all
