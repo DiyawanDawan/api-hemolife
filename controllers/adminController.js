@@ -1,8 +1,12 @@
+// const { format } = require('date-fns');
+const { nanoid } = require("nanoid");
+
 const {
 	BankDarah,
 	GolDarah,
 	LokasiPmi,
 	TraDonor,
+	Jadwal,
 	User,
 	Admin,
 } = require("../models");
@@ -254,6 +258,62 @@ const updateAdminProfile = async (req, res) => {
 	}
 };
 
+const postJadwalDonorDarahPMI = async (req, res) => {
+	try {
+	  const { id_lokasi_pmi,  tanggal_donor, jadwal_hari, jadwal_jam_mulai, jadwal_jam_selesai } = req.body;
+  
+	  // Lakukan validasi input, pastikan nilai-nilai tidak kosong atau sesuai dengan aturan
+  
+	  // Cari ID lokasi PMI berdasarkan nama lokasi
+	  const lokasiPmi = await LokasiPmi.findOne({
+		where: { id_lokasi_pmi },
+	  });
+  
+	  if (!lokasiPmi) {
+		return res.status(404).json({
+		  success: false,
+		  error: "Lokasi PMI tidak ditemukan",
+		});
+	  }
+  
+	  // Simpan data ke database
+	  const newJadwal = await Jadwal.create({
+		id_jadwal: nanoid(5),
+		id_lokasi_pmi: lokasiPmi.id_lokasi_pmi,
+		tanggal_donor,
+		jadwal_hari,
+		jadwal_jam_mulai,
+		jadwal_jam_selesai,
+	  });
+	//   const formattedTanggalDonor = format(newJadwal.tanggal_donor, 'yyyy-MM-dd');
+
+	  res.status(201).json({
+		success: true,
+		message: "Jadwal pendonoran darah berhasil ditambahkan",
+		data: {
+			alamat_pmi: lokasiPmi.alamat,
+			id_lok_pmi: lokasiPmi.id_lokasi_pmi,
+			tanggal_donor: new Date(newJadwal.tanggal_donor).toISOString().split('T')[0], 
+			// tanggal_donor: formattedTanggalDonor,
+			jadwal_jam_mulai: newJadwal.jadwal_jam_mulai,
+			jadwal_jam_selesai: newJadwal.jadwal_jam_selesai,
+			jadwal_hari: newJadwal.jadwal_hari,
+			latitude: lokasiPmi.latitude,
+			longitude: lokasiPmi.longitude,
+			nama_lok_pmi: lokasiPmi.nama,
+		  },
+	  });
+	} catch (error) {
+	  console.error(error);
+	  res.status(500).json({
+		success: false,
+		error: "Internal Server Error",
+	  });
+	}
+  };
+  
+
+
 module.exports = {
 	getAllBloodBank,
 	getBloodBankByPmiId,
@@ -261,4 +321,5 @@ module.exports = {
 	getAllBloodDonors,
 	adminProfile,
 	updateAdminProfile,
+	postJadwalDonorDarahPMI
 };

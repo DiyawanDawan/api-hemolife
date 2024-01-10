@@ -133,6 +133,10 @@ module.exports = {
         type: Sequelize.STRING,
         allowNull: false,
       },
+      tanggal_donor: {
+        type: Sequelize.DATE,
+        allowNull: false,
+      },
       jadwal_jam_mulai: {
         type: Sequelize.TIME,
         allowNull: false,
