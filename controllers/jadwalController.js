@@ -43,7 +43,7 @@ exports.getAllJadwalPerDay = async (req, res) => {
       alamat_pmi: jadwal.LokasiPmi.alamat,
       tanggal_donor: new Date(jadwal.tanggal_donor).toISOString().split('T')[0], // Tambahkan ini jika tanggal_donor ada dalam model Jadwal
       jadwal_hari: jadwal.jadwal_hari, // Tambahkan ini jika jadwal_hari ada dalam model Jadwal
-      
+
       jadwal_jam_mulai: jadwal.jadwal_jam_mulai,
       jadwal_jam_selesai: jadwal.jadwal_jam_selesai,
       latitude: jadwal.LokasiPmi.latitude,
@@ -128,24 +128,42 @@ exports.postJadwalDaftar = async (req, res) => {
     const user = await User.findOne({ where: { id_user } });
     if (!user) {
       return res
-        .status(404)
-        .json({ success: false, message: "User tidak ditemukan" });
+          .status(404)
+          .json({ success: false, message: "User tidak ditemukan" });
     }
 
     // Check if the provided gol_darah exists
     const golDarah = await GolDarah.findOne({ where: { id_gol_darah } });
     if (!golDarah) {
       return res
-        .status(404)
-        .json({ success: false, message: "Invalid gol_darah" });
+          .status(404)
+          .json({ success: false, message: "Invalid gol_darah" });
     }
 
     // Check if the provided lokasi_pmi exists
     const lokasiPmi = await LokasiPmi.findOne({ where: { id_lokasi_pmi } });
     if (!lokasiPmi) {
       return res
-        .status(404)
-        .json({ success: false, message: "Invalid lokasi_pmi" });
+          .status(404)
+          .json({ success: false, message: "Invalid lokasi_pmi" });
+    }
+
+    // Check if the user has a previous donor registration within the last month
+    const lastDonorRegistration = await TraDonor.findOne({
+      where: {
+        id_user,
+        tgl_donor: {
+          [Sequelize.Op.gte]: Sequelize.literal('CURRENT_DATE - INTERVAL 1 MONTH'),
+        },
+      },
+      order: [['tgl_donor', 'DESC']],
+    });
+
+    if (lastDonorRegistration) {
+      return res.status(400).json({
+        success: false,
+        message: "Mohon Maaf, Anda sudah melakukan pendaftaran donor darah dalam 1 bulan terakhir.",
+      });
     }
 
     // Perform the donor registration

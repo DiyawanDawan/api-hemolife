@@ -311,8 +311,6 @@ const postJadwalDonorDarahPMI = async (req, res) => {
 	  });
 	}
   };
-  
-
 
 module.exports = {
 	getAllBloodBank,

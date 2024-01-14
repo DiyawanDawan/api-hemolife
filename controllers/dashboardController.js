@@ -5,7 +5,6 @@ const {
   TraReqDarah,
   User,
   sequelize,
-  Sequelize,
 } = require("../models");
 
 exports.getDashboardUser = async (req, res) => {
