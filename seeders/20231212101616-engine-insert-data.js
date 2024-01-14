@@ -136,6 +136,23 @@ module.exports = {
       },
     ]);
 
+    await queryInterface.bulkInsert("blogs", [
+      {
+        id_blog: nanoid(5),
+        judul: "Pentingnya Donor Darah",
+        konten: "Donor darah adalah proses menyumbangkan darah untuk keperluan transfusi. Ini adalah tindakan mulia yang dapat menyelamatkan nyawa banyak orang.",
+        penulis: "John Doe",
+        tanggal_publikasi: new Date(),
+      },
+      {
+        id_blog: nanoid(5),
+        judul: "Mengenal Seni Lukis",
+        konten: "Seni lukis adalah bentuk ekspresi kreatif yang memungkinkan seniman menyampaikan ide dan perasaan mereka melalui media visual. Beberapa seni lukis terkenal termasuk lukisan abstrak, realisme, dan impresionisme.",
+        penulis: "Michael Artiste",
+        tanggal_publikasi: new Date(),
+      },
+    ])
+
     await queryInterface.bulkInsert("bank_darah", [
       {
         id_bank_darah: nanoid(5),

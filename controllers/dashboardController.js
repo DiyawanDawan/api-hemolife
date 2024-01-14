@@ -15,7 +15,8 @@ exports.getDashboardUser = async (req, res) => {
       where: { id_user: userId },
       include: [
         { model: GolDarah, attributes: ["id_gol_darah", "gol_darah"] },
-        { model: LokasiPmi, attributes: ["id_lokasi_pmi", "nama"] },
+        { model: LokasiPmi, attributes: ["id_lokasi_pmi", "nama", "email"] },
+        // {model: LokasiPmi, attributes: ['id_lokasi_pmi', "jadwal_jam_mulai"]}
       ],
     });
 
@@ -33,16 +34,27 @@ exports.getDashboardUser = async (req, res) => {
       ],
     });
 
-    const pendonor = traDonorList.map((traDonor) => ({
-      id_donor: traDonor.id_tra_donor,
-      gol_darah: traDonor.GolDarah.gol_darah,
-      lokasi_pmi: traDonor.LokasiPmi ? traDonor.LokasiPmi.nama : null,
-      tanggal_donor:
-        traDonor.tgl_donor >= new Date(new Date().setHours(0o0, 0o0, 0o0)) &&
-        traDonor.tgl_donor < new Date(new Date().setHours(23, 59, 59))
-          ? traDonor.tgl_donor.toISOString().split("T")[0]
-          : null,
-    }));
+    const pendonor = traDonorList.map((traDonor) => {
+      const isToday =
+          traDonor.tgl_donor >= new Date(new Date().setHours(0, 0, 0)) &&
+          traDonor.tgl_donor < new Date(new Date().setHours(23, 59, 59));
+
+      const formattedTanggalDonor = isToday
+          ? new Date(traDonor.tgl_donor).toLocaleDateString('id-ID', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+          })
+          : null;
+
+      return {
+        id_donor: traDonor.id_tra_donor,
+        gol_darah: traDonor.GolDarah.gol_darah,
+        lokasi_pmi: traDonor.LokasiPmi ? traDonor.LokasiPmi.nama : null,
+        email: traDonor.LokasiPmi ? traDonor.LokasiPmi.email : null,
+        tanggal_donor: formattedTanggalDonor,
+      };
+    });
 
     const response = {
       success: true,

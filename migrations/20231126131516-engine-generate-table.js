@@ -1,5 +1,6 @@
 "use strict";
 
+const {nanoid} = require("nanoid");
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
@@ -293,7 +294,42 @@ module.exports = {
         allowNull: false,
       },
     });
+    await queryInterface.createTable("blogs", {
+
+      id_blog: {
+        type: Sequelize.STRING,
+            primaryKey: true,
+            allowNull: false,
+      },
+      judul: {
+        type: Sequelize.STRING,
+            allowNull: false,
+      },
+      konten: {
+        type: Sequelize.TEXT,
+            allowNull: false,
+      },
+      penulis: {
+        type: Sequelize.STRING,
+            allowNull: false,
+      },
+      tanggal_publikasi: {
+        type: Sequelize.DATE,
+            allowNull: false,
+      },
+      createdAt: {
+        type: Sequelize.DATE,
+        defaultValue: Sequelize.NOW,
+        allowNull: false,
+      },
+      updatedAt: {
+        type: Sequelize.DATE,
+        defaultValue: Sequelize.NOW,
+        allowNull: false,
+      }
+    })
   },
+
 
   async down(queryInterface, Sequelize) {
     await queryInterface.dropTable("gol_darah");
