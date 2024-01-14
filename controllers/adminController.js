@@ -1,15 +1,8 @@
 // const { format } = require('date-fns');
 const { nanoid } = require("nanoid");
 
-const {
-	BankDarah,
-	GolDarah,
-	LokasiPmi,
-	TraDonor,
-	Jadwal,
-	User,
-	Admin,
-} = require("../models");
+const { BankDarah, GolDarah, LokasiPmi, TraDonor, Jadwal, User, Blogs, Admin } = require("../models");
+
 const Validator = require("fastest-validator");
 
 const v = new Validator();
@@ -261,21 +254,21 @@ const updateAdminProfile = async (req, res) => {
 const postJadwalDonorDarahPMI = async (req, res) => {
 	try {
 	  const { id_lokasi_pmi,  tanggal_donor, jadwal_hari, jadwal_jam_mulai, jadwal_jam_selesai } = req.body;
-  
+
 	  // Lakukan validasi input, pastikan nilai-nilai tidak kosong atau sesuai dengan aturan
-  
+
 	  // Cari ID lokasi PMI berdasarkan nama lokasi
 	  const lokasiPmi = await LokasiPmi.findOne({
 		where: { id_lokasi_pmi },
 	  });
-  
+
 	  if (!lokasiPmi) {
 		return res.status(404).json({
 		  success: false,
 		  error: "Lokasi PMI tidak ditemukan",
 		});
 	  }
-  
+
 	  // Simpan data ke database
 	  const newJadwal = await Jadwal.create({
 		id_jadwal: nanoid(5),
@@ -286,6 +279,11 @@ const postJadwalDonorDarahPMI = async (req, res) => {
 		jadwal_jam_selesai,
 	  });
 	//   const formattedTanggalDonor = format(newJadwal.tanggal_donor, 'yyyy-MM-dd');
+		const formattedTanggalDonor = new Date(newJadwal.tanggal_donor).toLocaleDateString('id-ID', {
+			year: 'numeric',
+			month: 'long',
+			day: 'numeric',
+		});
 
 	  res.status(201).json({
 		success: true,
@@ -293,7 +291,7 @@ const postJadwalDonorDarahPMI = async (req, res) => {
 		data: {
 			alamat_pmi: lokasiPmi.alamat,
 			id_lok_pmi: lokasiPmi.id_lokasi_pmi,
-			tanggal_donor: new Date(newJadwal.tanggal_donor).toISOString().split('T')[0], 
+			tanggal_donor: formattedTanggalDonor,
 			// tanggal_donor: formattedTanggalDonor,
 			jadwal_jam_mulai: newJadwal.jadwal_jam_mulai,
 			jadwal_jam_selesai: newJadwal.jadwal_jam_selesai,
@@ -312,6 +310,37 @@ const postJadwalDonorDarahPMI = async (req, res) => {
 	}
   };
 
+const addBlogPosts = async (req, res)  => {
+	try {
+		// Ambil data dari body request
+		const { judul, konten, penulis, tanggal_publikasi } = req.body;
+		const formattedTanggalPublikasi = new Date(tanggal_publikasi).toLocaleDateString('id-ID', {
+			year: 'numeric',
+			month: 'long',
+			day: 'numeric',
+		});
+		// Tambahkan data baru ke tabel "blogs"
+		const newBlog = await Blogs.create({
+			judul,
+			konten,
+			penulis,
+			tanggal_publikasi,
+		});
+
+		res.status(201).json({
+			success: true,
+            data: {
+                ...newBlog.toJSON(),
+                tanggal_publikasi: formattedTanggalPublikasi,
+            },
+			message: 'Blog berhasil ditambahkan',
+		});
+	} catch (error) {
+		console.error(error);
+		res.status(500).json({ success: false, message: 'Internal Server Error', error: error.message });
+
+	}
+}
 module.exports = {
 	getAllBloodBank,
 	getBloodBankByPmiId,
@@ -319,5 +348,6 @@ module.exports = {
 	getAllBloodDonors,
 	adminProfile,
 	updateAdminProfile,
-	postJadwalDonorDarahPMI
+	postJadwalDonorDarahPMI,
+	addBlogPosts
 };

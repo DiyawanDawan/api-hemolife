@@ -41,7 +41,11 @@ exports.getAllJadwalPerDay = async (req, res) => {
       id_lok_pmi: jadwal.LokasiPmi.id_lokasi_pmi,
       nama_lok_pmi: jadwal.LokasiPmi.nama,
       alamat_pmi: jadwal.LokasiPmi.alamat,
-      tanggal_donor: new Date(jadwal.tanggal_donor).toISOString().split('T')[0], // Tambahkan ini jika tanggal_donor ada dalam model Jadwal
+      tanggal_donor: new Date(jadwal.tanggal_donor).toLocaleDateString('id-ID', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      }), // Tambahkan ini jika tanggal_donor ada dalam model Jadwal
       jadwal_hari: jadwal.jadwal_hari, // Tambahkan ini jika jadwal_hari ada dalam model Jadwal
 
       jadwal_jam_mulai: jadwal.jadwal_jam_mulai,
@@ -174,7 +178,11 @@ exports.postJadwalDaftar = async (req, res) => {
       tgl_donor,
       status: 1, // 1 Register
     });
-
+    const formattedTanggalDonor = new Date(newDonorRegistration.tgl_donor).toLocaleDateString('id-ID', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
     res.json({
       success: true,
       data: {
@@ -182,7 +190,7 @@ exports.postJadwalDaftar = async (req, res) => {
         status_donor: newDonorRegistration.status,
         gol_darah: golDarah.gol_darah,
         lokasi_pmi: lokasiPmi.nama,
-        tanggal_donor: newDonorRegistration.tgl_donor,
+        tanggal_donor: formattedTanggalDonor,
         message: "Donor registration successful",
       },
     });

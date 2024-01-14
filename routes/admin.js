@@ -1,5 +1,5 @@
-var express = require("express");
-var router = express.Router();
+const express = require("express");
+const router = express.Router();
 
 const {
 	getAllBloodBank,
@@ -8,7 +8,8 @@ const {
 	getAllBloodDonors,
 	adminProfile,
 	updateAdminProfile,
-	postJadwalDonorDarahPMI
+	postJadwalDonorDarahPMI,
+	addBlogPosts
 } = require("../controllers/adminController");
 const { authenticateToken } = require("../middleware/middleware");
 
@@ -19,5 +20,5 @@ router.get("/pendonorDarah", getAllBloodDonors);
 router.get("/adminProfile", authenticateToken, adminProfile);
 router.put("/adminProfile/update", authenticateToken, updateAdminProfile);
 router.post("/addPostJadwalPMI", authenticateToken, postJadwalDonorDarahPMI)
-
+router.post("/blogesAddPost", addBlogPosts)
 module.exports = router;
