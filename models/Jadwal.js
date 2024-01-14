@@ -17,6 +17,9 @@ module.exports = (sequelize, DataTypes) => {
       tanggal_donor: {
         type: DataTypes.DATE,
       },
+        // tanggal_daftar: {
+        //   type: DataTypes.DATE,
+        // },
       jadwal_jam_mulai: {
         type: DataTypes.TIME,
       },
