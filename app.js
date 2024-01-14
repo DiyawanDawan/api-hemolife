@@ -33,7 +33,7 @@ app.use("/v1/user/userProfile", profileRouter);
 app.use("/v1/admin", adminRouter);
 // app.use("/v1/admin/", addPostJadwalPMI);
 app.use("/v1/user/jadwal", jadwalRouter);
-app.use("/v1/user/blogs", blogsRouter)
+app.use("/v1/blogs", blogsRouter)
 app.use("/v1/user/volunteer", volunteerRouter);
 app.use("/v1/user/dashboardUser", dashboardRouter);
 
