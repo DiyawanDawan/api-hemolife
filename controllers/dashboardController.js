@@ -1,3 +1,4 @@
+const moment = require('moment');
 const {
   GolDarah,
   LokasiPmi,
@@ -40,11 +41,7 @@ exports.getDashboardUser = async (req, res) => {
           traDonor.tgl_donor < new Date(new Date().setHours(23, 59, 59));
 
       const formattedTanggalDonor = isToday
-          ? new Date(traDonor.tgl_donor).toLocaleDateString('id-ID', {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric',
-          })
+          ? moment(traDonor.tgl_donor).locale('id-ID').format('dddd, DD MMMM YYYY')
           : null;
 
       return {
@@ -58,6 +55,7 @@ exports.getDashboardUser = async (req, res) => {
 
     const response = {
       success: true,
+      massage: "succes",
       sukarelawan_menerima: userRequesterData.map((data) => ({
         id_user_volunteer: data.id_user_volunteer,
         nama_volunteer: data.nama,
