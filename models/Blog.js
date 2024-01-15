@@ -3,7 +3,7 @@ const { nanoid } = require("nanoid");
 
 module.exports = (sequelize, DataTypes) => {
     const Blogs = sequelize.define(
-        'Blogs',
+        'Blog',
         {
             id_blog: {
                 type: DataTypes.STRING,
