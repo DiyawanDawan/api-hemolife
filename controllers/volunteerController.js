@@ -1,6 +1,43 @@
 const { Op } = require("sequelize");
 const { GolDarah, User, TraReqDarah } = require("../models");
 
+exports.listVolunteer = async (req, res) => {
+  try {
+    // Retrieve all volunteers
+    const volunteers = await User.findAll({
+      where: {
+        sts_volunteer: 1, // Assuming 1 represents active volunteers
+      },
+      include: [
+        {
+          model: GolDarah,
+          attributes: ["gol_darah"],
+        },
+      ],
+    });
+
+    // Format the response as needed
+    const volunteerslist = volunteers.map((volunteer) => ({
+      id_user: volunteer.id_user,
+      id_gol_darah: volunteer.id_gol_darah,
+      nama: volunteer.nama,
+      email: volunteer.email,
+      no_hp: volunteer.no_hp,
+      jenis_kelamin: volunteer.jenis_kelamin,
+      tanggal_lahir: volunteer.tanggal_lahir,
+      alamat: volunteer.alamat,
+      password: volunteer.password,
+      sts_volunteer: volunteer.sts_volunteer,
+      gol_darah: volunteer["GolDarah.gol_darah"],
+    }));
+
+    res.json({error: false, massage: "List volunteer Sucesfully",volunteerslist});
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
 exports.getVolunteer = async (req, res) => {
   try {
     const { golDarah, alamat } = req.query;

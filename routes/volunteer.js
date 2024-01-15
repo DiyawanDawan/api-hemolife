@@ -3,6 +3,7 @@ const router = express.Router();
 const volunteerController = require("../controllers/volunteerController");
 const { authenticateToken } = require("../middleware/middleware");
 
+router.get("/list", volunteerController.listVolunteer);
 router.get("/search", authenticateToken, volunteerController.getVolunteer);
 router.post(
   "/request",

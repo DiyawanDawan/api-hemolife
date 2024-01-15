@@ -56,12 +56,10 @@ const searchBlog = async (req, res) => {
             return res.status(400).json({ error: true, message: "Query parameter 'q' is required for search" });
         }
 
-        // Ganti spasi dengan %20
-        searchQuery = searchQuery.replace(/ /g, '%20');
-        // atau menggunakan split dan join
-        // searchQuery = searchQuery.split(' ').join('%20');
+        // Gunakan encodeURIComponent untuk mengganti spasi dan karakter khusus lainnya
+        searchQuery = encodeURIComponent(searchQuery);
 
-        const encodedQuery = encodeURIComponent(searchQuery);
+        const encodedQuery = searchQuery;
 
         const keywords = searchQuery.split('%20'); // Pisahkan kata kunci menjadi array
         const conditions = keywords.map(keyword => ({
