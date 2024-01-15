@@ -17,8 +17,12 @@ module.exports = (sequelize, DataTypes) => {
 			id_lokasi_pmi: {
 				type: DataTypes.STRING,
 			},
-			tgl_donor: {
+			id_jadwal: {
+				type: DataTypes.STRING,
+			},
+			tanggal_daftar: {
 				type: DataTypes.DATE,
+				defaultValue: DataTypes.NOW,
 				allowNull: false,
 			},
 			status: {
@@ -31,6 +35,7 @@ module.exports = (sequelize, DataTypes) => {
 
 	TraDonor.associate = function (models) {
 		TraDonor.belongsTo(models.User, { foreignKey: "id_user" });
+		TraDonor.belongsTo(models.Jadwal, {foreignKey: "id_jadwal"})
 		TraDonor.belongsTo(models.GolDarah, { foreignKey: "id_gol_darah" });
 		TraDonor.belongsTo(models.LokasiPmi, { foreignKey: "id_lokasi_pmi" });
 	};

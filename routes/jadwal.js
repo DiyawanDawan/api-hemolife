@@ -8,6 +8,6 @@ const { authenticateToken } = require("../middleware/middleware");
 router.get("/list", authenticateToken, jadwalController.getAllJadwalPerDay);
 router.get("/detail/:id",authenticateToken, jadwalController.getDetailLocationById);
 router.post("/daftar",authenticateToken, jadwalController.postJadwalDaftar);
-router.post("/cari",authenticateToken, jadwalController.postCariJadwalLokasi);
+router.get("/search",authenticateToken, jadwalController.searchJadwalDonor);
 
 module.exports = router;

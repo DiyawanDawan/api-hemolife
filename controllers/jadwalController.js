@@ -1,4 +1,5 @@
 // jadwalController.js
+const moment = require('moment');
 const {
   Jadwal,
   BankDarah,
@@ -13,15 +14,8 @@ const {
 // Controller function to get all jadwal data
 exports.getAllJadwalPerDay = async (req, res) => {
   try {
-    // const d = new Date();
-    // let getday = d.getDay();
-
-    // let hari = ["MINGGU", "SENIN", "SELASA", "RABU", "KAMIS", "JUMAT", "SABTU"];
     // Fetch jadwal records for the specified day from the database
     const jadwalData = await Jadwal.findAll({
-      // where: {
-      //   jadwal_hari: hari[getday],
-      // },
       include: [
         {
           model: LokasiPmi,
@@ -41,13 +35,7 @@ exports.getAllJadwalPerDay = async (req, res) => {
       id_lok_pmi: jadwal.LokasiPmi.id_lokasi_pmi,
       nama_lok_pmi: jadwal.LokasiPmi.nama,
       alamat_pmi: jadwal.LokasiPmi.alamat,
-      tanggal_donor: new Date(jadwal.tanggal_donor).toLocaleDateString('id-ID', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-      }), // Tambahkan ini jika tanggal_donor ada dalam model Jadwal
-      jadwal_hari: jadwal.jadwal_hari, // Tambahkan ini jika jadwal_hari ada dalam model Jadwal
-
+      tanggal_donor: moment(jadwal.tanggal_donor).locale('id-ID').format('dddd, DD MMMM YYYY'),
       jadwal_jam_mulai: jadwal.jadwal_jam_mulai,
       jadwal_jam_selesai: jadwal.jadwal_jam_selesai,
       latitude: jadwal.LokasiPmi.latitude,
@@ -55,7 +43,7 @@ exports.getAllJadwalPerDay = async (req, res) => {
     }));
 
     // Send the formatted jadwal data as a response
-    res.json({ success: true, data: formattedData });
+    res.json({ success: true, schedules: formattedData });
   } catch (error) {
     console.error(error);
     res.status(500).json({ success: false, error: "Internal Server Error" });
@@ -126,48 +114,30 @@ exports.getDetailLocationById = async (req, res) => {
 
 exports.postJadwalDaftar = async (req, res) => {
   try {
-    const { id_user, id_lokasi_pmi, id_gol_darah, tgl_donor } = req.body;
+    const { id_user, id_lokasi_pmi, id_gol_darah, id_jadwal } = req.body;
 
     // Check if the user exists
     const user = await User.findOne({ where: { id_user } });
     if (!user) {
-      return res
-          .status(404)
-          .json({ success: false, message: "User tidak ditemukan" });
+      return res.status(404).json({ success: false, message: "User tidak ditemukan" });
     }
 
     // Check if the provided gol_darah exists
     const golDarah = await GolDarah.findOne({ where: { id_gol_darah } });
     if (!golDarah) {
-      return res
-          .status(404)
-          .json({ success: false, message: "Invalid gol_darah" });
+      return res.status(404).json({ success: false, message: "Invalid gol_darah" });
     }
 
     // Check if the provided lokasi_pmi exists
     const lokasiPmi = await LokasiPmi.findOne({ where: { id_lokasi_pmi } });
     if (!lokasiPmi) {
-      return res
-          .status(404)
-          .json({ success: false, message: "Invalid lokasi_pmi" });
+      return res.status(404).json({ success: false, message: "Invalid lokasi_pmi" });
     }
 
-    // Check if the user has a previous donor registration within the last month
-    const lastDonorRegistration = await TraDonor.findOne({
-      where: {
-        id_user,
-        tgl_donor: {
-          [Sequelize.Op.gte]: Sequelize.literal('CURRENT_DATE - INTERVAL 1 MONTH'),
-        },
-      },
-      order: [['tgl_donor', 'DESC']],
-    });
-
-    if (lastDonorRegistration) {
-      return res.status(400).json({
-        success: false,
-        message: "Mohon Maaf, Anda sudah melakukan pendaftaran donor darah dalam 1 bulan terakhir.",
-      });
+    // Check if the provided jadwal exists
+    const jadwal = await Jadwal.findOne({ where: { id_jadwal } });
+    if (!jadwal) {
+      return res.status(404).json({ success: false, message: "Invalid id_jadwal" });
     }
 
     // Perform the donor registration
@@ -175,23 +145,24 @@ exports.postJadwalDaftar = async (req, res) => {
       id_user,
       id_gol_darah,
       id_lokasi_pmi,
-      tgl_donor,
+      id_jadwal,
+      // tgl_donor,
       status: 1, // 1 Register
     });
-    const formattedTanggalDonor = new Date(newDonorRegistration.tgl_donor).toLocaleDateString('id-ID', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    });
+
+    const formattedTanggalDaftar = moment(newDonorRegistration.createdAt).locale('id-ID').format('dddd, DD MMMM YYYY');
+    // const formattedTanggalDonor = moment(newDonorRegistration.tanggal_donor).locale('id-ID').format('dddd, DD MMMM YYYY HH:mm:ss');
+
     res.json({
       success: true,
-      data: {
+      message: "Donor registration successful",
+      schedule: {
         id_pendonor: newDonorRegistration.id_tra_donor,
         status_donor: newDonorRegistration.status,
         gol_darah: golDarah.gol_darah,
         lokasi_pmi: lokasiPmi.nama,
-        tanggal_donor: formattedTanggalDonor,
-        message: "Donor registration successful",
+        tanggal_daftar: formattedTanggalDaftar,
+        tanggal_donor: moment(jadwal.tanggal_donor).locale('id-ID').format('dddd, DD MMMM YYYY'),
       },
     });
   } catch (error) {
@@ -200,14 +171,12 @@ exports.postJadwalDaftar = async (req, res) => {
   }
 };
 
-exports.postCariJadwalLokasi = async (req, res) => {
+exports.searchJadwalDonor = async (req, res) => {
   try {
-    const { lokasiQuery } = req.body; // Assuming you send the search query in the request body
-
-    const d = new Date();
-    let getday = d.getDay();
-
-    let hari = ["MINGGU", "SENIN", "SELASA", "RABU", "KAMIS", "JUMAT", "SABTU"];
+    const lokasiQuery = req.query.q;
+    if (!lokasiQuery) {
+      return res.status(400).json({ message: "Query parameter 'q' is required for search" });
+    }
 
     // Use Sequelize to find all locations based on the name or address
     const lokasiList = await LokasiPmi.findAll({
@@ -225,24 +194,23 @@ exports.postCariJadwalLokasi = async (req, res) => {
 
     // Iterate through the list of locations and find the associated schedules (Jadwal) for each
     const result = lokasiList.map(async (lokasi) => {
-      const jadwalData = await Jadwal.findAll({
+      const schedules = await Jadwal.findAll({
         where: {
           id_lokasi_pmi: lokasi.id_lokasi_pmi,
-          jadwal_hari: hari[getday],
         },
       });
 
       return {
         lokasi,
-        jadwalData:
-          jadwalData.length > 0
-            ? jadwalData.map((item) => ({
-                id_jadwal: item.id_jadwal,
-                jadwal_hari: item.jadwal_hari,
-                jadwal_jam_mulai: item.jadwal_jam_mulai,
-                jadwal_jam_selesai: item.jadwal_jam_selesai,
-              }))
-            : [],
+        schedules:
+            schedules.length > 0
+                ? schedules.map((item) => ({
+                  id_jadwal: item.id_jadwal,
+                  jadwal_jam_mulai: item.jadwal_jam_mulai,
+                  jadwal_jam_selesai: item.jadwal_jam_selesai,
+                  tanggal_donor: moment(item.tanggal_donor).locale('id-ID').format('dddd, DD MMMM YYYY'),
+                }))
+                : [],
       };
     });
 
@@ -251,7 +219,7 @@ exports.postCariJadwalLokasi = async (req, res) => {
 
     // Filter out items where jadwalData is empty
     const filteredResult = finalResult.filter(
-      (item) => item.jadwalData.length > 0
+        (item) => item.schedules.length > 0
     );
 
     return res.status(200).json(filteredResult);

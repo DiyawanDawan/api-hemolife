@@ -236,8 +236,18 @@ module.exports = {
         onUpdate: "CASCADE",
         onDelete: "SET NULL",
       },
-      tgl_donor: {
+      id_jadwal: {
+        type: Sequelize.STRING,
+        references: {
+          model: "jadwal",
+          key: "id_jadwal",
+        },
+        onUpdate: "CASCADE",
+        onDelete: "SET NULL",
+      },
+      tanggal_daftar: {
         type: Sequelize.DATE,
+        defaultValue: Sequelize.NOW,
         allowNull: false,
       },
       status: {
