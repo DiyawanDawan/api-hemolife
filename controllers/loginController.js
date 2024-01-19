@@ -17,7 +17,7 @@ exports.login = async (req, res) => {
     // If no user or admin is found, send an error response
     if (!user && !admin) {
       console.log("User or admin not found");
-      return res.status(401).json({ message: "Invalid email or password" });
+      return res.status(401).json({error: true, message: "Invalid email or password" });
     }
 
     // If user is found, check user password
@@ -44,8 +44,9 @@ exports.login = async (req, res) => {
         const loggedInUserId = user.id_user;
         const loggedInGolDarah = user.id_gol_darah;
 
-        return res.json({
-          message: "User login successful",
+        return res.status(200).json({
+          error: false,
+          message: "User Login success",
           token,
           userId: loggedInUserId,
           id_gol_darah: loggedInGolDarah,
@@ -67,15 +68,15 @@ exports.login = async (req, res) => {
           }
         );
 
-        return res.json({ message: "Admin login successful", token });
+        return res.json({ error: false, message: "Admin Login success", token });
       }
     }
 
     // If password is not valid, send an error response
     console.log("Invalid password");
-    return res.status(401).json({ message: "Invalid password" });
+    return res.status(401).json({error: true, message: "Invalid password" });
   } catch (error) {
     console.error("Error during login:", error);
-    res.status(500).json({ message: "Internal server error" });
+    res.status(500).json({error: true, message: "Internal server error" });
   }
 };

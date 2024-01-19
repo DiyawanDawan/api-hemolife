@@ -15,13 +15,13 @@ exports.getUserProfile = async (req, res) => {
     const user = await User.findOne({ where: { id_user: req.user.userId } });
 
     if (!user) {
-      return res.status(404).json({ message: "User not found" });
+      return res.status(404).json({error: true, message: "User not found" });
     }
 
-    res.json({ message: "User profile retrieved successfully", user });
+    res.status(200).json({error: false, message: "success", user });
   } catch (error) {
     console.error("Error retrieving user profile:", error);
-    res.status(500).json({ message: "Internal server error" });
+    res.status(500).json({error: true, message: "Internal server error" });
   }
 };
 
@@ -31,7 +31,7 @@ exports.updateUserProfile = async (req, res) => {
     const user = await User.findOne({ where: { id_user: req.user.userId } });
 
     if (!user) {
-      return res.status(404).json({ message: "User not found" });
+      return res.status(404).json({ error: true, message: "User not found" });
     }
 
     const schema = {
@@ -67,11 +67,15 @@ exports.updateUserProfile = async (req, res) => {
       return res.status(400).json(validate);
     }
 
-    await User.update(req.body, { where: { id_user: req.user.userId } });
+    // Update user data
+    await user.update(req.body);
 
-    res.json({ message: "User profile updated successfully" });
+    // Get updated user data
+    const updatedUser = await User.findOne({ where: { id_user: req.user.userId } });
+
+    res.json({ error: false, message: "success", user: updatedUser });
   } catch (error) {
     console.error("Error updating user profile:", error);
-    res.status(500).json({ message: "Internal server error" });
+    res.status(500).json({ error: true, message: "Internal server error" });
   }
 };

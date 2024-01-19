@@ -43,7 +43,7 @@ exports.getAllJadwalPerDay = async (req, res) => {
     }));
 
     // Send the formatted jadwal data as a response
-    res.json({ success: true, schedules: formattedData });
+    res.json({ success: true, message: "success", results: formattedData });
   } catch (error) {
     console.error(error);
     res.status(500).json({ success: false, error: "Internal Server Error" });
@@ -51,65 +51,56 @@ exports.getAllJadwalPerDay = async (req, res) => {
 };
 
 exports.getDetailLocationById = async (req, res) => {
-  try {
-    const lokasiPmiData = await LokasiPmi.findOne({
-      attributes: [
-        "id_lokasi_pmi",
-        "nama",
-        "no_telpon",
-        "alamat",
-        "latitude",
-        "longitude",
-      ],
-      where: {
-        id_lokasi_pmi: req.params.id,
-      },
-      include: [
-        {
-          model: BankDarah,
-          attributes: ["jumlah_kantong_darah"],
-          include: [
-            {
-              model: GolDarah,
-              attributes: ["id_gol_darah", "gol_darah"],
+    try {
+        const lokasiPmiData = await LokasiPmi.findOne({
+            attributes: [
+                "id_lokasi_pmi",
+                "nama",
+                "no_telpon",
+                "alamat",
+                "latitude",
+                "longitude",
+            ],
+            where: {
+                id_lokasi_pmi: req.params.id,
             },
-          ],
-        },
-      ],
-      nest: true, // Add this option to nest the associations
-    });
+            include: [
+                {
+                    model: Jadwal,
+                    attributes: ["id_jadwal", "jadwal_jam_mulai", "jadwal_jam_selesai", "tanggal_donor"],
+                },
+            ],
+            nest: true, // Add this option to nest the associations
+        });
 
-    console.log("lokasiPmiData:", lokasiPmiData);
+        if (!lokasiPmiData) {
+            return res.status(404).json({ success: false, error: "Location not found" });
+        }
 
-    if (!lokasiPmiData) {
-      return res
-        .status(404)
-        .json({ success: false, error: "Location not found" });
+        const jadwalDonor = (lokasiPmiData.Jadwals || []).map((jadwal) => {
+            return {
+                id_jadwal: jadwal.id_jadwal,
+                jadwal_jam_mulai: jadwal.jadwal_jam_mulai,
+                jadwal_jam_selesai: jadwal.jadwal_jam_selesai,
+                tanggal_donor: moment(jadwal.tanggal_donor).locale('id-ID').format('dddd, DD MMMM YYYY'),
+            };
+        });
+
+        const formattedData = {
+            id_lok_pmi: lokasiPmiData.id_lokasi_pmi,
+            nama: lokasiPmiData.nama,
+            no_telpon: lokasiPmiData.no_telpon,
+            alamat: lokasiPmiData.alamat,
+            latitude: lokasiPmiData.latitude,
+            longitude: lokasiPmiData.longitude,
+            schedules: jadwalDonor,
+        };
+
+        res.json({ success: true, message: "success", result: formattedData });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, error: "Internal Server Error" });
     }
-
-    const stokDarah = (lokasiPmiData.BankDarahs || []).map((bankDarah) => {
-      return {
-        id_gol_darah: bankDarah.GolDarah.id_gol_darah,
-        gol_darah: bankDarah.GolDarah.gol_darah,
-        jumlah_kantong_darah: bankDarah.jumlah_kantong_darah,
-      };
-    });
-
-    const formattedData = {
-      id_lok_pmi: lokasiPmiData.id_lokasi_pmi,
-      nama: lokasiPmiData.nama,
-      no_telpon: lokasiPmiData.no_telpon,
-      alamat: lokasiPmiData.alamat,
-      latitude: lokasiPmiData.latitude,
-      longitude: lokasiPmiData.longitude,
-      stok_darah: stokDarah,
-    };
-
-    res.json({ success: true, data: formattedData });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ success: false, error: "Internal Server Error" });
-  }
 };
 
 exports.postJadwalDaftar = async (req, res) => {
@@ -155,7 +146,7 @@ exports.postJadwalDaftar = async (req, res) => {
 
     res.json({
       success: true,
-      message: "Donor registration successful",
+      message: "success",
       schedule: {
         id_pendonor: newDonorRegistration.id_tra_donor,
         status_donor: newDonorRegistration.status,
@@ -167,64 +158,61 @@ exports.postJadwalDaftar = async (req, res) => {
     });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ success: false, error: "Internal Server Error" });
+    res.status(500).json({error: true, success: false, error: "Internal Server Error" });
   }
 };
 
 exports.searchJadwalDonor = async (req, res) => {
-  try {
-    const lokasiQuery = req.query.q;
-    if (!lokasiQuery) {
-      return res.status(400).json({ message: "Query parameter 'q' is required for search" });
+    try {
+        const lokasiQuery = req.query.q;
+        if (!lokasiQuery) {
+            return res.status(400).json({ error: true, message: "Query parameter 'q' is required for search" });
+        }
+
+        // Use Sequelize to find all locations based on the name or address
+        const lokasiList = await LokasiPmi.findAll({
+            where: {
+                [Sequelize.Op.or]: [
+                    { nama: { [Sequelize.Op.like]: `%${lokasiQuery}%` } },
+                    { alamat: { [Sequelize.Op.like]: `%${lokasiQuery}%` } },
+                ],
+            },
+            include: [
+                {
+                    model: Jadwal,
+                    attributes: ["id_jadwal", "jadwal_jam_mulai", "jadwal_jam_selesai", "tanggal_donor"],
+                },
+            ],
+        });
+
+
+        if (!lokasiList || lokasiList.length === 0) {
+            return res.status(404).json({ error: true, message: "Locations not found" });
+        }
+
+        // Prepare the response array
+        const results = lokasiList.map((lokasi) => {
+            return {
+                id_lokasi_pmi: lokasi.id_lokasi_pmi,
+                nama: lokasi.nama,
+                email: lokasi.email,
+                no_telpon: lokasi.no_telpon,
+                alamat: lokasi.alamat,
+                latitude: lokasi.latitude,
+                longitude: lokasi.longitude,
+                logo: lokasi.logo,
+                schedules:  lokasi.Jadwals ? lokasi.Jadwals.map((item) => ({
+                    id_jadwal: item.id_jadwal,
+                    jadwal_jam_mulai: item.jadwal_jam_mulai,
+                    jadwal_jam_selesai: item.jadwal_jam_selesai,
+                    tanggal_donor: moment(item.tanggal_donor).locale('id-ID').format('dddd, DD MMMM YYYY'),
+                })): [],
+            };
+        });
+
+        return res.status(200).json({ error: false, message: "success", results });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ error: true, message: "Internal server error" });
     }
-
-    // Use Sequelize to find all locations based on the name or address
-    const lokasiList = await LokasiPmi.findAll({
-      where: {
-        [Sequelize.Op.or]: [
-          { nama: { [Sequelize.Op.like]: `%${lokasiQuery}%` } }, // Case-insensitive search for name
-          { alamat: { [Sequelize.Op.like]: `%${lokasiQuery}%` } }, // Case-insensitive search for address
-        ],
-      },
-    });
-
-    if (!lokasiList || lokasiList.length === 0) {
-      return res.status(404).json({ message: "Locations not found" });
-    }
-
-    // Iterate through the list of locations and find the associated schedules (Jadwal) for each
-    const result = lokasiList.map(async (lokasi) => {
-      const schedules = await Jadwal.findAll({
-        where: {
-          id_lokasi_pmi: lokasi.id_lokasi_pmi,
-        },
-      });
-
-      return {
-        lokasi,
-        schedules:
-            schedules.length > 0
-                ? schedules.map((item) => ({
-                  id_jadwal: item.id_jadwal,
-                  jadwal_jam_mulai: item.jadwal_jam_mulai,
-                  jadwal_jam_selesai: item.jadwal_jam_selesai,
-                  tanggal_donor: moment(item.tanggal_donor).locale('id-ID').format('dddd, DD MMMM YYYY'),
-                }))
-                : [],
-      };
-    });
-
-    // Wait for all promises to resolve
-    const finalResult = await Promise.all(result);
-
-    // Filter out items where jadwalData is empty
-    const filteredResult = finalResult.filter(
-        (item) => item.schedules.length > 0
-    );
-
-    return res.status(200).json(filteredResult);
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({ message: "Internal server error" });
-  }
 };

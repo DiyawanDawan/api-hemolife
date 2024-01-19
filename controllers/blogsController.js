@@ -16,10 +16,10 @@ const getAllBlog = async (req, res) => {
             };
         });
 
-        return res.status(200).json({ error: false, message: "Blog List successfully", blogs: formattedBlogs });
+        return res.status(200).json({ error: false, message: "success", blogs: formattedBlogs });
     } catch (error) {
         console.error("Error retrieving blogs:", error);
-        return res.status(500).json({ error: "Internal Server Error", details: error.message });
+        return res.status(500).json({error: true, massage: "Internal Server Error", details: error.message });
     }
 };
 
@@ -41,10 +41,10 @@ const blogDetailById = async (req, res) => {
             updatedAt: blog.updatedAt ? moment(blog.updatedAt).locale('id').format('dddd, DD MMMM YYYY') : null,
         };
 
-        return res.status(200).json({ error: false, message: "Blog detail successfully obtained", blog: formattedBlog });
+        return res.status(200).json({ error: false, message: "success", blog: formattedBlog });
     } catch (error) {
         console.error("Error retrieving blog detail:", error);
-        return res.status(500).json({ error: "Internal Server Error", details: error.message });
+        return res.status(500).json({error: true, massage: "Internal Server Error", details: error.message });
     }
 };
 
@@ -85,10 +85,10 @@ const searchBlog = async (req, res) => {
             updatedAt: blog.updatedAt ? moment(blog.createdAt).locale('id-ID').format('dddd, DD MMMM YYYY') : null
         }));
 
-        return res.status(200).json({ error: false, message: "Blogs successfully obtained", blogs: formattedBlogs, encodedQuery });
+        return res.status(200).json({ error: false, message: "success", blogs: formattedBlogs, encodedQuery });
     } catch (error) {
         console.log("Error retrieving Blogs", error);
-        return res.status(500).json({ error: "Internal Server Error", details: error.message });
+        return res.status(500).json({error: true, message: "Internal Server Error", details: error.message });
     }
 }
 
