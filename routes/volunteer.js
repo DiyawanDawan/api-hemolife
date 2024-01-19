@@ -4,7 +4,7 @@ const volunteerController = require("../controllers/volunteerController");
 const { authenticateToken } = require("../middleware/middleware");
 
 router.get("/list", volunteerController.listVolunteer);
-router.get("/search", authenticateToken, volunteerController.getVolunteer);
+router.get("/search", authenticateToken, volunteerController.searchVolunteer);
 router.post(
   "/request",
   authenticateToken,

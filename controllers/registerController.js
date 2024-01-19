@@ -49,7 +49,7 @@ exports.registerUser = async (req, res) => {
     const user = await User.create(req.body);
 
     // Send a response with "Data tersimpan" message along with the input data
-    res.json({ message: "Data tersimpan", user });
+    res.json({error: false, message: "success", user });
   } catch (error) {
     // Handle specific errors for email
     if (
@@ -57,6 +57,7 @@ exports.registerUser = async (req, res) => {
       error.errors.some((e) => e.path === "email")
     ) {
       return res.status(400).json({
+        error: true,
         message: "Email sudah terdaftar, silakan gunakan email lain.",
       });
     }
@@ -67,13 +68,14 @@ exports.registerUser = async (req, res) => {
       error.errors.some((e) => e.path === "no_hp")
     ) {
       return res.status(400).json({
+        error: true,
         message: "Nomor HP sudah terdaftar, silakan gunakan nomor HP lain.",
       });
     }
 
     // Handle general errors
     console.error("Error during user creation:", error);
-    res.status(500).json({ message: "Terjadi kesalahan saat menyimpan data." });
+    res.status(500).json({error: true, message: "Terjadi kesalahan saat menyimpan data." });
   }
 };
 

@@ -9,87 +9,72 @@ const {
 } = require("../models");
 
 exports.getDashboardUser = async (req, res) => {
-  try {
-    const userId = req.user.userId;
+    try {
+        const userId = req.user.userId;
+        const user = await User.findByPk(userId);
+        // Retrieve blood donation requests made by the user
+        const userRequesterData = await TraReqDarah.findAll({
+            where: { id_user_volunteer: userId, status: 1 }, // Ensure status corresponds to unconfirmed requests
+            include: [
+                { model: GolDarah, attributes: ["id_gol_darah", "gol_darah"] },
+                { model: User, attributes: ["id_user", "nama", "email"] },
+            ],
+        });
 
-    const traDonorList = await TraDonor.findAll({
-      where: { id_user: userId },
-      include: [
-        { model: GolDarah, attributes: ["id_gol_darah", "gol_darah"] },
-        { model: LokasiPmi, attributes: ["id_lokasi_pmi", "nama", "email"] },
-        // {model: LokasiPmi, attributes: ['id_lokasi_pmi', "jadwal_jam_mulai"]}
-      ],
-    });
+        const userAcceptData = await TraReqDarah.findAll({
+            where: { id_user_volunteer: userId, status: 2 },
+            include: [
+                { model: GolDarah, attributes: ["id_gol_darah", "gol_darah"] },
+                { model: User, attributes: ["id_user", "nama", "email", "alamat", "no_hp"] },
+            ],
+        });
 
-    const userRequesterData = await TraReqDarah.findAll({
-      where: { id_user_req: userId, status: 2 },
-      include: [
-        { model: GolDarah, attributes: ["id_gol_darah", "gol_darah"] },
-      ],
-    });
+        const userRejectData = await TraReqDarah.findAll({
+            where: { id_user_volunteer: userId, status: 0 },
+            include: [
+                { model: GolDarah, attributes: ["id_gol_darah", "gol_darah"] },
+                { model: User, attributes: ["id_user", "nama", "email", "alamat", "no_hp"] },
+            ],
+        });
 
-    const userRejectData = await TraReqDarah.findAll({
-      where: { id_user_req: userId, status: 0 },
-      include: [
-        { model: GolDarah, attributes: ["id_gol_darah", "gol_darah"] },
-      ],
-    });
+        const response = {
+            success: true,
+            message: "success",
+            welcome: `Selamat datang, ${user.nama}!`,
+            sukarelawan_menerima: userAcceptData.map((data) => ({
+                id_user_volunteer: data.id_user_volunteer,
+                nama_volunteer: data.User.nama,
+                email_volunteer: data.User.email,
+                status: "Diterima",
+                alamat_volunteer: data.User.alamat,
+                gol_darah: data.GolDarah.gol_darah,
+                no_hp: data.User.no_hp,
+            })),
+            sukarelawan_menolak: userRejectData.map((data) => ({
+                id_user_volunteer: data.id_user_volunteer,
+                nama_volunteer: data.User.nama,
+                email_volunteer: data.User.email,
+                status: "Ditolak",
+                alamat_volunteer: data.User.alamat,
+                gol_darah: data.GolDarah.gol_darah,
+                no_hp: data.User.no_hp,
+            })),
+            pemohon: userRequesterData.map((data) => ({
+                id_user: data.id_user_req,
+                nama_pemohon: data.User.nama,
+                email_pemohon: data.User.email,
+                gol_darah: data.GolDarah.gol_darah,
+                alamat_pemohon: data.User.alamat,
+            })),
+        };
 
-    const pendonor = traDonorList.map((traDonor) => {
-      const isToday =
-          traDonor.tgl_donor >= new Date(new Date().setHours(0, 0, 0)) &&
-          traDonor.tgl_donor < new Date(new Date().setHours(23, 59, 59));
-
-      const formattedTanggalDonor = isToday
-          ? moment(traDonor.tgl_donor).locale('id-ID').format('dddd, DD MMMM YYYY')
-          : null;
-
-      return {
-        id_donor: traDonor.id_tra_donor,
-        gol_darah: traDonor.GolDarah.gol_darah,
-        lokasi_pmi: traDonor.LokasiPmi ? traDonor.LokasiPmi.nama : null,
-        email: traDonor.LokasiPmi ? traDonor.LokasiPmi.email : null,
-        tanggal_donor: formattedTanggalDonor,
-      };
-    });
-
-    const response = {
-      success: true,
-      massage: "succes",
-      sukarelawan_menerima: userRequesterData.map((data) => ({
-        id_user_volunteer: data.id_user_volunteer,
-        nama_volunteer: data.nama,
-        status: "Diterima",
-        alamat_volunteer: data.alamat,
-        gol_darah: data.GolDarah.gol_darah,
-        no_hp: data.no_hp,
-      })),
-      sukarelawan_menolak: userRejectData.map((data) => ({
-        id_user_volunteer: data.id_user_volunteer,
-        nama_volunteer: data.nama,
-        status: "Ditolak",
-        alamat_volunteer: data.alamat,
-        gol_darah: data.GolDarah.gol_darah,
-        no_hp: data.no_hp,
-      })),
-      pemohon: userRequesterData.map((data) => ({
-        id_user: data.id_user_req,
-        nama_pemohon: data.nama,
-        gol_darah: data.GolDarah.gol_darah,
-        alamat: data.alamat,
-      })),
-      pendonor: pendonor,
-    };
-
-    res.json(response);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ success: false, error: "Internal Server Error" });
-  }
+        res.json(response);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, error: "Internal Server Error" });
+    }
 };
 
-
-// Controller function to accept a request
 // Controller function to accept a request (changed method to POST)
 exports.postAcceptRequest = async (req, res) => {
   try {
